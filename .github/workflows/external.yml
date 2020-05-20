@@ -1,20 +1,16 @@
-name: deploy
+name: external_deploy
 on:
-    push:
-        branches:
-          - master
     repository_dispatch:
 jobs:
     build:
-        if: "!contains(github.event.head_commit.message, 'skipCI')"
         runs-on: ubuntu-latest
         steps:
             - name: Check out code
               uses: actions/checkout@v2
-            - name: Parse the version number
+            - name: Fetch the tag name
               run: |
-                  cd $GITHUB_WORKSPACE
-                  echo ::set-env name=VERSION::$(<version.md)
+                  echo github.event.client_payload.tag
+                  echo ::set-env name=TAG::github.event.client_payload.tag
             - name: Configure git for private modules
               env:
                   TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
@@ -24,7 +20,7 @@ jobs:
               with:
                   repository: renproject/darknode
                   token: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
-                  ref: release/${{ env.VERSION }}
+                  ref:  env.TAG
                   path: darknode
             - name: Build
               run: |
@@ -36,8 +32,8 @@ jobs:
               env:
                   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
               with:
-                  tag_name: ${{ env.VERSION }}
-                  release_name: ${{ env.VERSION }}
+                  tag_name: ${{ env.TAG }}
+                  release_name: ${{ env.TAG }}
                   draft: false
                   prerelease: false
             - name: Upload Release Asset
