@@ -1,12 +1,9 @@
 name: external_deploy
-on:
-    repository_dispatch
+on: [repository_dispatch]
 jobs:
     build:
         runs-on: ubuntu-latest
         steps:
-            - name: Check out code
-              uses: actions/checkout@v2
             - name: Fetch the tag name
               run: |
                   echo github.event.client_payload.tag
